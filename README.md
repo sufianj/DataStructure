@@ -26,6 +26,13 @@ Index:
 - Expression II: evaluate the mathmatical expression(Input as a string) using stack
 - Expression III: evaluate the mathmatical expression(Input as a string) using stack & Binary-Tree
 - ShufanJIANG-ds-Project
-	- - AppOfCriticalPath          Dijsktra                Hash              Sort
-		AppOfMiniCostSpanningTree  EvaluationOfExpression  HuffmanII
-		BTree                      expressionIII           ProcessStatistic
+	AppOfCriticalPath          
+	Dijsktra                
+	Hash              
+	Sort
+	AppOfMiniCostSpanningTree  
+	EvaluationOfExpression
+	HuffmanII
+	BTree
+	expressionIII           
+	ProcessStatistic
