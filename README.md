@@ -19,6 +19,8 @@ demo of data structures/ algorithms and their applications
 	- - Btree
 - Oct6 (Hash Table)
 - Tree30303 (Graphicall show a binary tree using MFC)
+- Expression II: evaluate the mathmatical expression(Input as a string) using stack
+- Expression III: evaluate the mathmatical expression(Input as a string) using stack & Binary-Tree
 - ShufanJIANG-ds-Project
 	- - AppOfCriticalPath          Dijsktra                Hash              Sort
 		AppOfMiniCostSpanningTree  EvaluationOfExpression  HuffmanII
