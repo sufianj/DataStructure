@@ -1,5 +1,7 @@
 Descprition: demo of data structures/ algorithms and their application
-Test/Installation: Open and Run the projects in Visual Studio (version >= vc6.0) 
+
+Test/Installation: Open and Run the projects in Visual Studio (version >= vc6.0)
+
 Index:
 - sort
 	- InsertSort
