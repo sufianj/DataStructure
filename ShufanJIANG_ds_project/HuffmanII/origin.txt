@@ -1,0 +1,71 @@
+
+	for(i = n + 1; i <= m; ++i)
+	{	
+		int asum = 1;
+		for (j = 1; j < i; ++j)
+			if (0 == HT[j].parent)
+			{
+				a[asum].pos = j;
+				a[asum].weight = HT[j].weight;
+				asum++;
+			}
+		SortAss(a, asum-1);	int p = m;
+	input.read((char *)&b, sizeof(bool));
+	while (! input.eof())
+	{
+		//cout << b;
+		if (!HT[p].lchild)
+		{				
+			cout << HT[p].c;
+			p = m;
+		}
+		if (b)
+			p = HT[p].rchild;
+		else 
+			p = HT[p].lchild;
+		input.read((char *)&b, sizeof(bool));
+	}
+	cout << endl;
+	input.close();
+	input1.close();
+	input2.close();
+	delete HT;
+}
+
+void adjustAss(ass *a, int s, int len)
+{
+	int i;
+	ass rc;
+	rc.pos = a[s].pos;
+	rc.weight = a[s].weight;
+	for (i = s << 1; i <= len; i <<= 1)
+	{
+		if (i < len && a[i].weight < a[i + 1].weight)
+			++i;
+		if (a[i].weight < rc.weight)
+			break;
+		a[s].weight = a[i].weight;
+		a[s].pos = a[i].pos;
+		s = i;
+	}
+	a[s].pos = rc.pos;
+	a[s].weight = rc.weight;
+}
+
+void SortAss(ass *a, int len)
+{
+	int i;
+	ass temp;
+	for (i = len / 2; i != 0; --i)
+		adjustAss(a, i, len);
+	for (i = len; i > 1; --i)
+	{
+		temp.pos = a[i].pos;
+		temp.weight = a[i].weight;
+		a[i].pos = a[1].pos;
+		a[i].weight = a[1].weight;
+		a[1].pos = temp.pos;
+		a[1].weight = temp.weight;
+		adjustAss(a, 1, i - 1);
+	}
+}

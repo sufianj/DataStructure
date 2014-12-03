@@ -1,0 +1,1 @@
+document.writeln("<img src=\"/images/banner.gif\" />");

@@ -1,0 +1,5 @@
+mw.loader.implement("ext.gadget.site-lib",function(){var wgUXS=function(wg,hans,hant,cn,tw,hk,sg,zh,mo,my){var ret={'zh':zh||hans||hant||cn||tw||hk||sg||mo||my,'zh-hans':hans||cn||sg||my,'zh-hant':hant||tw||hk||mo,'zh-cn':cn||hans||sg||my,'zh-sg':sg||hans||cn||my,'zh-tw':tw||hant||hk||mo,'zh-hk':hk||hant||tw||mo}
+return ret[wg]||zh||hans||hant||cn||tw||hk||sg||mo||my;}
+window.wgULS=function(hans,hant,cn,tw,hk,sg,zh,mo,my){return wgUXS(wgUserLanguage,hans,hant,cn,tw,hk,sg,zh,mo,my);};window.wgUVS=function(hans,hant,cn,tw,hk,sg,zh,mo,my){return wgUXS(wgUserVariant,hans,hant,cn,tw,hk,sg,zh,mo,my);};window.getParamValue=mw.util.getParamValue;window.importScriptCallback=function(page,ready){importScriptURICallback(wgServer+wgScript+'?title='+mw.util.wikiUrlencode(page)+'&action=raw&ctype=text/javascript',ready);};window.importScriptURICallback=jQuery.getScript;;},{},{});
+
+/* cache key: zhwiki:resourceloader:filter:minify-js:7:4eb2a0484b5578d54c790e40e4c7f5dd */

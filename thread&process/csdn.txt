@@ -1,0 +1,587 @@
+VC下通过系统快照实现进程管理:
+http://www.programfan.com/article/showarticle.asp?id=2658
+
+要对当前系统所有已开启的进程进行枚举，就必须首先获得那些加载到内存的进程当前相关状态信息。在Windows操作系统下，这些进程的当前状态信息不能直接从进程本身获取，系统已为所有保存在系统内存中的进程、线程以及模块等的当前状态的信息制作了一个只读副本--系统快照，用户可以通过对系统快照的访问完成对进程当前状态的检测。在具体实现时，系统快照句柄的获取是通过Win32   API函数CreateToolhelp32Snapshot()来完成的，通过该函数不仅可以获取进程快照，而且对于堆、模块和线程的系统快照同样可以获取。该函数原型声明如下：
+
+HANDLE   WINAPI   CreateToolhelp32Snapshot(DWORD   dwFlags,DWORD   th32ProcessID);  
+
+在得到系统的快照句柄后，就可以对当前进程的标识号进行枚举了，通过这些枚举出的进程标识号可以很方便的对进程进行管理。进程标识号通过函数   Process32First()   和   Process32Next()而得到，这两个函数可以枚举出系统当前所有开启的进程，并且可以得到相关的进程信息。   这两个函数原型声明如下：  
+
+
+BOOL   WINAPI   Process32First(HANDLE   hSnapshot,   LPPROCESSENTRY32   lppe);
+BOOL   WINAPI   Process32Next(HANDLE   hSnapshot,LPPROCESSENTRY32   lppe);  
+
+
+　　以上两个函数分别用于获得系统快照中第一个和下一个进程的信息，并将获取得到的信息保存在指针lppe所指向的PROCESSENTRY32结构中。函数第一个参数hSnapshot为由CreateToolhelp32Snapshot()函数返回得到的系统快照句柄；第二个参数lppe为指向结构 PROCESSENTRY32的指针，PROCESSENTRY32结构可对进程作一个较为全面的描述，其定义如下：  
+
+typedef   struct   tagPROCESSENTRY32   {  
+DWORD   dwSize;   //   结构大小；  
+DWORD   cntUsage;   //   此进程的引用计数；  
+DWORD   th32ProcessID;   //   进程ID;  
+DWORD   th32DefaultHeapID;   //   进程默认堆ID；  
+DWORD   th32ModuleID;   //   进程模块ID；  
+DWORD   cntThreads;   //   此进程开启的线程计数；  
+DWORD   th32ParentProcessID;   //   父进程ID；  
+LONG   pcPriClassBase;   //   线程优先权；  
+DWORD   dwFlags;   //   保留；  
+char   szExeFile[MAX_PATH];   //   进程全名；  
+}   PROCESSENTRY32;  
+
+
+　　以上三个API函数均在头文件tlhelp32.h中声明，运行时需要有kernel32.lib库的支持。通过这三个函数可以枚举出当前系统已开启的所有进程，并可获取到进程的各相关信息，下面给出一个简单的应用示例。在此示例中将枚举出系统的所有进程，并获取各进程的标识号和相应程序的绝对路径，进程标识号在下一步对进程的管理中将要用到，程序路径则直接通过列表控件显示出来：
+
+//   PROCESSENTRY32结构对象
+PROCESSENTRY32   pe;
+//   创建快照句柄
+HANDLE   hSnapshot   =   CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,   0);
+//   先搜索系统中第一个进程的信息
+Process32First(hSnapshot,   &pe);
+//   下面对系统中的所有进程进行枚举，并保存其信息
+do{
+//   把进程对应的文件路径名填入列表框
+int   index   =   m_ctlwndList.AddString(pe.szExeFile);
+//   设置列表框中该项的Data相应的进程的ID号，利于以后终止该进程
+m_ctlwndList.SetItemData(index,   pe.th32ProcessID);
+}   while   (Process32Next(hSnapshot,   &pe));
+//   关闭快照句柄
+CloseHandle(hSnapshot);   
+
+
+Win   2000以下的进程枚举:
+http://www.yesky.com/231/1714231_1.shtml
+
+
+在   win   2000   下有3个方法可供选择，我比较喜欢简单的方法。NtQuerySystemInformation   功能固然强大，但使用比较麻烦。而   win   2000   的   TOOLHELP32   API   其本质还是调用了   NtQuerySystemInformation   函数，由于它发生错误时，可能不能正确返回返回值，所以不是很稳定，使用起来也是很麻烦的，不符合我的懒人本性。还是采用   PSAPI   比较好，简单又方便，只需要三个函数，且没有复杂的结构体参数。
+
+　　函数原型：
+
+BOOL
+WINAPI
+EnumProcesses（
+DWORD   *   lpidProcess,//指针指向存放进程ID的数组
+DWORD   cb,   //数组大小
+DWORD   *   cbNeeded   //返回的实际大小
+）；
+
+BOOL
+WINAPI
+EnumProcessModules（
+HANDLE   hProcess,   //进程句柄
+HMODULE   *lphModule,   //指针指向存放模块句柄的数组
+DWORD   cb,   //数组大小
+LPDWORD   lpcbNeeded   //返回的实际大小
+）；
+
+DWORD
+WINAPI
+GetModuleFileNameEx（
+HANDLE   hProcess,   //进程句柄
+HMODULE   hModule,   //模块句柄
+LPSTR   lpFilename,   //存放模块文件名的字符串
+DWORD   nSize   //字符串大小
+）；
+他们的作用分别是：枚举进程，枚举进程模块，获取模块文件名（包含路径）。
+详细的源代码到该URL去查看. 
+
+
+
+实时监控所有端口的连接情况、及时对异常连接发出警告并提示用户删除异常连接，就可以有效地达到防黑目的。  
+使用微软的IP助手库函数（iphlpapi.dll）是一个捷径。其中的   GetTcpTable函数能返回当前系统中全部有效的   TCP连接。其定义为：  
+DWORD   GetTcpTable(  
+PMIB_TCPTABLE   pTcpTable,   //   buffer   for   the   connection   table  
+PDWORD   pdwSize,   //   size   of   the   buffer  
+BOOL   bOrder   //   sort   the   table?  
+);  
+
+其中参数一是   TCP连接表缓冲区的指针，参数二是缓冲区大小（当缓冲区不够大时，该参数返回实际需要的大小），参数三指示连接表是否需要按“Local   IP”、“Localport”、“Remote   IP”、“Remote   port”依次进行排序。  
+对于监控   UDP连接表，可使用   GetUdpTable函数完成。由于在使用上完全类似，这里略去讨论（后面的实例程序中也相应地略去了对   UDP的监控）。 
+
+实时监控所有端口的连接情况、及时对异常连接发出警告并提示用户删除异常连接，就可以有效地达到防黑目的。  
+使用微软的IP助手库函数（iphlpapi.dll）是一个捷径。其中的   GetTcpTable函数能返回当前系统中全部有效的   TCP连接。其定义为：  
+DWORD   GetTcpTable(  
+PMIB_TCPTABLE   pTcpTable,   //   buffer   for   the   connection   table  
+PDWORD   pdwSize,   //   size   of   the   buffer  
+BOOL   bOrder   //   sort   the   table?  
+);  
+
+其中参数一是   TCP连接表缓冲区的指针，参数二是缓冲区大小（当缓冲区不够大时，该参数返回实际需要的大小），参数三指示连接表是否需要按“Local   IP”、“Localport”、“Remote   IP”、“Remote   port”依次进行排序。  
+对于监控   UDP连接表，可使用   GetUdpTable函数完成。由于在使用上完全类似，这里略去讨论（后面的实例程序中也相应地略去了对   UDP的监控）。 
+//////////////////////////////////////////////////////////////////see in EmiTest//////////////////////////////////////////////
+
+　　#include <windows.h>
+
+　　#include <tlhelp32.h>
+
+　　int main(int argc, char* argv[])
+
+　　{
+
+　　HANDLE hSnapshot = CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+
+　　if (!hSnapshot)
+
+　　{
+
+　　printf("CreateToolhelp32Snapshot ERROR!\n");
+
+　　return 1;
+
+　　}
+
+　　PROCESSENTRY32 pe32;
+
+　　pe32.dwSize = sizeof(PROCESSENTRY32 );
+
+　　if (!Process32First (hSnapshot, &pe32))
+
+　　{
+
+　　printf("Process32First ERROR!\n");
+
+　　}
+
+　　do
+
+　　{
+
+　　printf("ProcID:%d---%s\n",pe32.th32ProcessID ,pe32.szExeFile );
+
+　　}while(Process32Next (hSnapshot, &pe32));
+
+　　return 0;
+
+　　}
+/////////////////////////////////////////////////////
+
+C++得到当前进程所占用的内存
+(2011-09-05 10:15:37)
+转载
+标签：
+杂谈
+	分类： 备忘
+
+使用SDK的PSAPI (Process Status Helper)
+中的
+BOOL GetProcessMemoryInfo(
+  HANDLE Process,
+  PPROCESS_MEMORY_COUNTERS ppsmemCounters,
+  DWORD cb
+);
+
+typedef struct _PROCESS_MEMORY_COUNTERS {
+  DWORD cb;
+  DWORD PageFaultCount;
+  SIZE_T PeakWorkingSetSize; //峰值内存使用
+  SIZE_T WorkingSetSize; //内存使用
+  SIZE_T QuotaPeakPagedPoolUsage;
+  SIZE_T QuotaPagedPoolUsage;
+  SIZE_T QuotaPeakNonPagedPoolUsage;
+  SIZE_T QuotaNonPagedPoolUsage;
+  SIZE_T PagefileUsage; //虚拟内存使用
+  SIZE_T PeakPagefileUsage; //峰值虚拟内存使用
+} PROCESS_MEMORY_COUNTERS, 
+*PPROCESS_MEMORY_COUNTERS;
+
+
+#include <iostream>
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib,"psapi.lib")
+using namespace std;
+void showMemoryInfo(void)
+    {
+    HANDLE handle=GetCurrentProcess();
+    PROCESS_MEMORY_COUNTERS pmc;
+    GetProcessMemoryInfo(handle,&pmc,sizeof(pmc));
+    cout<<"内存使用:"<<pmc.WorkingSetSize/1000 <<"K/"<<pmc.PeakWorkingSetSize/1000<<"K + "<<pmc.PagefileUsage/1000 <<"K/"<<pmc.PeakPagefileUsage/1000 <<"K"<<endl;
+    }
+int main(int argc,char* argv)
+    {
+    showMemoryInfo();
+    cout<<"回收所有可回收的内存"<<endl;
+    EmptyWorkingSet(GetCurrentProcess());
+    showMemoryInfo();
+    cout<<"开始动态分配内存"<<endl;
+    char* buf[5];
+    for(int i=0;i<sizeof(buf)/sizeof(char*);i++)
+        {
+        buf[i]=new char[102400];
+        showMemoryInfo();
+        }
+    cout<<"开始释放内存"<<endl;
+    for(int i=0;i<sizeof(buf)/sizeof(char*);i++)
+        {
+        delete buf[i];
+        buf[i]=NULL;
+        showMemoryInfo();
+        }
+    cout<<"回收所有可回收的内存"<<endl;
+    EmptyWorkingSet(GetCurrentProcess());
+    showMemoryInfo();
+    return 0;
+    }
+
+输出：
+内存使用:1339K/1339K + 356K/356K
+回收所有可回收的内存
+内存使用:114K/1425K + 356K/356K
+开始动态分配内存
+内存使用:430K/1425K + 466K/466K
+内存使用:438K/1425K + 573K/573K
+内存使用:446K/1425K + 679K/679K
+内存使用:454K/1425K + 786K/786K
+内存使用:462K/1425K + 892K/892K
+开始释放内存
+内存使用:462K/1425K + 794K/892K
+内存使用:454K/1425K + 692K/892K
+内存使用:446K/1425K + 589K/892K
+内存使用:438K/1425K + 487K/892K
+内存使用:425K/1425K + 360K/892K
+回收所有可回收的内存
+内存使用:110K/1425K + 360K/892K
+////////////////////////////////////////////////////////////////
+使用SDK的PSAPI (Process Status Helper)
+
+BOOL GetProcessMemoryInfo(
+  HANDLE Process ,
+  PPROCESS_MEMORY_COUNTERS ppsmemCounters ,
+  DWORD cb
+);
+
+The PROCESS_MEMORY_COUNTERS structure contains the memory statistics for a process.
+typedef struct _PROCESS_MEMORY_COUNTERS {
+  DWORD cb;
+  DWORD PageFaultCount;
+  SIZE_T PeakWorkingSetSize;
+  SIZE_T WorkingSetSize;
+  SIZE_T QuotaPeakPagedPoolUsage;
+  SIZE_T QuotaPagedPoolUsage;
+  SIZE_T QuotaPeakNonPagedPoolUsage;
+  SIZE_T QuotaNonPagedPoolUsage;
+  SIZE_T PagefileUsage;
+  SIZE_T PeakPagefileUsage;
+} PROCESS_MEMORY_COUNTERS, *PPROCESS_MEMORY_COUNTERS;
+ 
+成员说明：
+cb
+Size of the structure, in bytes.
+
+PageFaultCount
+Number of page faults. //缺页中断次数
+
+PeakWorkingSetSize
+Peak working set size. //使用内存高峰
+
+WorkingSetSize
+Current working set size. //当前使用的内存
+
+QuotaPeakPagedPoolUsage
+Peak paged pool usage. //使用页面缓存池高峰
+
+QuotaPagedPoolUsage
+Current paged pool usage. 使用页面缓存池
+
+QuotaPeakNonPagedPoolUsage
+Peak nonpaged pool usage. //使用非分页缓存池高峰
+
+QuotaNonPagedPoolUsage
+Current nonpaged pool usage. //使用非分页缓存池
+
+PagefileUsage
+Current space allocated for the pagefile. Those pages may or may not be in memory. //使用分页文件
+
+PeakPagefileUsage
+Peak space allocated for the pagefile. //使用分页文件高峰
+
+注意：我们在“任务管理器”里看到的内存为“专用工作集”。而 WorkingSetSize 为“总工作集”。“总工作集”分为“可共享工作集”和“专用工作集”。
+        所以通过 WorkingSetSize 看到内存量，要比通过内存管理器看到的内存量大。
+
+ ==========================================================
+#include  < windows.h >
+#include  < psapi.h >
+ 
+#pragma  comment(lib,"psapi.lib")
+using   namespace  std;
+
+void  GetMemoryInfo( )
+{
+    HANDLE handle = GetCurrentProcess();
+    PROCESS_MEMORY_COUNTERS pmc;
+    GetProcessMemoryInfo(handle, & pmc, sizeof (pmc));
+}
+/////////////////////////////////////////////////////////////////////////////
+剖析Windows任务管理器开发原理与实现
+CND8学院　C/C++教程　发布日期：2008年07月09日
+将本文收藏到： | 收藏到本地 | 复制本文地址
+
+Author: Brief[原创]
+　　E-Mail: Brief@fz5fz.org
+　　Homepage: www.fz5fz.org && www.safechina.net
+　　Date: 05-01-2003
+　　
+　　    Windows2000/XP内含的任务治理器(Taskmgr)相信大家都熟悉吧，相比之下XP里的要比2000功能更加强大，返回的信息也更加的具体，不过您是否觉得还有很多希望获得的消息没有包含在里面吗？您是否觉得Windows的系统治理工具箱里的东西太分散了吗？下面就让我们看看它们的开发原理，并动手实现一个真正的任务治理器。现在我们是调用Win32API来实现这些功能的，但是大家都说MS隐藏了太多的细节，以后我们将讨论更多关于Windows内核的东东。
+　　
+　　    可能大家对任务治理器里最熟悉的功能要数进程治理了，经常我们在怀疑中了病毒/木马的时候都会看看任务治理器里有没有什么非凡的进程在运行，所以进程查看器应该是一个非常重要的功能。我们除了需要获得进程的名称外，还有什么呢？当然包括它的进程标识符(ProcessID)，用户信息(UserName)，CPU使用时间(CPUTime)和存储器的使用情况(MemoryUsage)，还有它的优先权(BasePriority)。CPU和Memory信息可以帮助我们分析进程的运行情况，而优先权可以表示进程在CPU分配处理器使用时的优先情况。这些都是通用的进程信息，让我们再看看其他的信息吧。进程的父进程标识符(Parent Process ID)，创建时间 (Create Time)，程序名称等在很多情况下也是我们关心的信息。我们再看看进程相关的性能信息。在Windows下通常有两种模式：内核模式 (Kernel: Level 0)和用户模式(User: Level 3)，进程往往在两种模式中往返切换，所以可以获得进程在内核模式和用户模式各自的使用时间。同时还包括进程相关的工作集(WorkingSet)，分页池(PagedPool)，非分页池(NonePagedPool)和页面文件 (PageFile）信息。进程相关的I/O操作包括读/写/其他等动作，我们可以获得这些操作的次数和传送数据的数量。
+　　
+　　     假如您怀疑某个进程是木马，那您还想获得哪些信息呢？简单的进程名称应该是不够的吧！我们希望获得进程的实际程序的路径，这样可以帮助我们判定究竟是那个程序在运行。前段时间不是在讨论什么进程隐藏的，其中一种就是“创建远程线程”，而注体往往又是以动态链接库(DLL)的形式存在的，我们就希望看到某个具体进程所包含的所有模块(Module)，经常是DLL也。“线程”是一个大家熟悉的名字，它是Windows系统中的实现体，而进程则是线程运行的环境。一个进程到底创建了多少线程了？我们同样可以枚举进程内部的所有线程信息。假如您发现一个木马进程，下面的动作就应该是分析它的运行机制(假如您对它感爱好)，不过最终您还是要将它结束吧。在Windows2k下，很多系统要害进程在TaskMgr里是不能被结束的，不过现在您不用担心了。好的，对进程的操作当然就包括结束进程。假如您用过中文的XP，您是否经常碰到任务栏“假死”的情况，虽然您的电脑没有挂掉，但却动弹不得，那好我们也同样可以将任意的进程挂起来，不管您对它做什么动作(除了结束)，它都不会有任何的反应。有了挂起进程，同样我们也可以将进程从“挂起”状态激活哈。
+　　
+　　    桌面窗口是大家接触得最多的交互界面了，您是否想获得每个窗口的标题信息呢？当然我们还可以获得与窗口关联的进程，线程与窗口句柄属性。假如大家对VC比较熟悉，就应该知道其中的一个SPY++工具吧，它就可以获得桌面窗口，进程和线程的具体信息，不过现在就不用打开这个，打开那个了，通通搞定了！
+　　
+　　    系统性能是每个用户关心的话题。它包括整个系统当前创建的句柄，进程以及线程的数目。还有物理存储器 (Physical Memory)的总量和使用情况，系统高速缓存(System Cache)的大小，存储器保留与提交 (Commit Charge)状况，当然还有核心分页/非分页池(Kernel Memory)的使用情况。几乎包括了Windows系统下存储器治理的大部分信息。
+　　
+　　    虽然现在硬盘的价格已经很低了，不过我还是在用6.4G的小东东，所以经常碰到“Low Disk”！我们经常要看看硬盘的使用情况，不过每次都要进入我的电脑，太麻烦了。而我们现在可以一次了解所有磁盘的容量和当前使用情况，同时还有它们的格式类型(如 FAT,NTFS,CDFS等)和磁盘标签。
+　　
+　　    说到环境块，或许不是那么熟悉吧，它包含一些环境变量，而每个环境变量对应一个/多个字符串，您可以在控制面板的SYSTEM/Advanced（系统/高级）里对它们进行设置，包括添加新的环境变量，删除和编辑系统环境变量。
+　　
+　　    事件记录对我们分析系统的使用情况有很大的帮助。事件记录分为三种：应用程序，系统和安全。而对应的每种事件又可以分为几种类型，它们分别是常规信息，警告和错误。其中包括记录序号(Record Number)，事件类型(Type)，标识符(Event ID)，来源(Source)，产生时间(Time Generated)，用户名(User)和相关描述信息(Description)。有时间大家可以多看看事件信息，当然每个网络治理员对它们应该是很熟悉的，不过还包括其他的事件日志信息。
+　　
+　　
+　　    Windows系统下的ipconfig /all这个命令我是经常用，因为我们使用的是DHCP，没事看看自己的IP地址变了没有。其中包括具体的网络适配器的信息，包括适配器名称，描述，硬件地址和类型，IP地址及相应的子网掩码，网关与DHCP服务器地址等。不过您是否对网络流量也感爱好呢？我们当然可以获得主机接受/发送了多少（非）广播数据报，出现了多少错误，一共接受/发送了多少信息，这些对每个网友都是有用的信息哟。
+　　
+　　    网络共享往往是大家注重的地方，您究竟共享了多少信息，它们的文件路径是什么，还有它们的共享类型信息。我们在不需要某些共享资料时，当然不要忘了将其删除，以免泄露自己的机密信息。
+　　
+　　    Windows的NT是一个多用户的系统，答应多种类型用户的存在。我们希望获得用户账号的使用期限(PassWord Expired)，记住要不定时的修改用户的密码哟，以及用户标识符(User ID)，组标识符(Group ID)，还有用户账号的类型(Type)，不同的类型有不同的权限，我们当然希望有最High的权力哟！看看系统对某个账号的磁盘空间使用情况是否有限制(Max Storage)，账号登录的次数 (Number Of Logon)和登录时间信息(Logon Hours)等，对我们分析用户的使用情况也有帮助的。
+　　
+　　     系统的Win32服务和设备驱动信息也是很重要的，我们希望探测每个服务/设备启动程序的具体路径，状态，类型，启动方式等等信息。我们还希望对服务进行控制，比如停止，启动和删除操作。大家可以参阅《浅析Windows2000/XP服务与后门技术》获得更多关于Win32服务的信息。
+　　
+　　    关机也不是那么的单调的，您可以注销自己的系统，假如您要离开当然就需要锁定了。最近大家都不喜欢关机，太麻烦了，所以都习惯使用冬眠，系统将会为我们保留当前信息，不过还有支持电源治理的关机和休眠。Windows2000的用户注重了，我们同样可以使用XP系统下的带有到记时与消息提示的关机和重启功能了。
+　　
+　　    系统的版本信息是比较固定的，主要包括操作系统的指纹，注册组织/用户，主机名和系统相关目录等信息。   
+　　
+　　    说了这么多，我们也该谈谈如何实现了。
+　　
+　　    1.窗口信息
+　　    MS为我们提供了打开特定桌面和枚举桌面窗口的函数。
+　　    hDesk=OpenDesktop(lpszDesktop,0,FALSE,DESKTOP_ENUMERATE);
+　　    //打开我们默认的Default桌面；
+　　    EnumDesktopWindows(hDesk,(WNDENUMPROC)EnumWindowProc,0);
+　　    //枚举打开桌面上的所有窗口，由回调函数实现。
+　　    BOOL __stdcall EnumWindowProc(HWND, LPARAM);
+　　    //在回调函数中，我们可以获得窗口的标题和相关进程，线程信息；
+　　    GetWindowText(hWnd,szWindowText,dwMaxCount);
+　　    GetWindowThreadProcessId(hWnd,&dwPID);
+　　
+　　    2.设备驱动器信息(服务和设备驱动器差不多，在此不做重复)
+　　    设备驱动信息有服务控制治理器(SCM)来治理的，我要打开服务控制治理器，并枚举所有的设备驱动器。
+　　    OpenSCManager(NULL,NULL,SC_MANAGER_ALL_Access);
+　　    //以所有权限打开服务控制治理器；
+　　    EnumServicesStatus(schManager,dwDeviceType,dwDeviceState,
+　　                EnumStatus,dwBufSize,&dwBytesNeeded,
+　　             &dwDevicesReturned,&dwResumeHandle))
+　　    //枚举所有设备的当前状态；
+　　    CloseServiceHandle(schManager);
+　　
+　　     //记住，在结束访问后要关闭服务句柄；
+　　    OpenService(schManager,szDeviceName,SERVICE_ALL_ACCESS);
+　　    //打开特定的设备驱动器；
+　　    QueryServiceConfig(schDevice,lpDeviceConfig,
+　　                       1024*8,&dwBytesNeeded)；
+　　    //查询驱动器的服务配置信息；
+　　    QueryServiceStatus(schDevice,&DeviceStatus)；
+　　    //查询设备驱动器的当前状态；
+　　    QueryServiceConfig2(schDevice,SERVICE_CONFIG_DESCRIPTION,
+　　    (LPBYTE)lpDeviceDescription,8*1024,&dwBytesNeeded)
+　　    //查询设备的描述信息；
+　　    StartService(schDevice,0,NULL)；
+　　    //启动设备；
+　　    ControlService(schDevice,SERVICE_CONTROL_STOP,&DeviceStatus)；
+　　    //停止设备；
+　　    DeleteService(schDevice)；
+　　    //删除设备；
+　　
+　　    3.磁盘信息
+　　    我们希望获得系统所有磁盘的信息，包括软盘，硬盘，光盘等等；
+　　    GetLogicalDriveStrings(dwBufferLength,lpBuffer);
+　　    //获得逻辑设备的信息；
+　　    GetVolumeInformation(lpRootPathName,lpVolumeNameBuffer,
+　　     dwVolumeNameSize,&dwVolumeSerialNumber,
+　　     &dwMaximumComponentLength,&dwFileSystemFlags,
+　　            lpFileSystemNameBuffer,dwFileSystemNameSize);
+　　    //获得磁盘卷信息，包括卷名称和格式类型；
+　　    GetDiskFreeSpaceEx(lpRootPathName,&FreeBytesAvailable,
+　　                  &TotalNumberOfBytes,&TotalNumberOfFreeBytes);
+　　    //探测磁盘的空间使用情况；
+　　
+　　    4.环境变量
+　　    我们可以从注册表中获得环境块的信息：HKEY_LOCAL_MACHINESYSTEMCurrentControlSetControlSession ManagerEnvironment，当然要使用注册表的函数。
+　　    RegOpenKeyEx(HKEY_LOCAL_MACHINE,RegKey,0,KEY_QUERY_VALUE,&hKey);
+　　    //打开注册表的键；
+　　    RegEnumValue(hKey,dwIndex,EnvironVariable,
+　　                 &dwVariableLength,NULL,NULL,NULL,NULL);
+　　    //查询我们需要的信息值；
+　　    GetEnvironmentVariable(EnvironVariable,EnvironString,1024);
+　　    //获得环境变量的字符串信息；
+　　    
+　　    5.事件记录信息
+　　    OpenEventLog(NULL,szLog);
+　　    //打开时间日志记录；
+　　    GetOldestEventLogRecord(hEvent,&dwThisRecord);
+　　
+　　     //获得最新的日志信息，以便继续查找；
+　　    ReadEventLog(hEvent,EVENTLOG_FORWARDS_READ │ EVENTLOG_SEQUENTIAL_READ,
+　　   0,pEventLogRecord,1024*32,&dwRead,&dwNeeded)
+　　    //读去日志信息；
+　　    LookupAccountSid(NULL,pSid,szName,&dwName,szDomain,&dwDomain,&SNU)；
+　　    //获取账户的SID，以便获得账户的用户名称；
+　　    GetNumberOfEventLogRecords(hEvent,&dwTotal)；
+　　    //获得事件日志的总数；
+　　    CloseEventLog(hEvent);
+　　    //不要忘记关闭事件句柄；
+　　    
+　　    6.网络共享
+　　    我们使用第二等级的网络共享搜索；
+　　    NetShareEnum(NULL,dwLevel,(PBYTE *)&pBuf,MAX_PREFERRED_LENGTH,&entriesread,&totalentries,&resume);
+　　    //列举所有的共享目录及相关信息；
+　　    NetApiBufferFree(pBuf);
+　　    //释放缓冲区；
+　　    NetShareDel(NULL,(char *)lpShareNameW,0);
+　　    //删除网络共享目录；
+　　    
+　　    7.网络适配器信息
+　　    我们要探测NIC的信息和网络流量；
+　　    GetAdaptersInfo(&AdapterInfo,&OutBufLen);
+　　    //获取适配器信息；
+　　    
+　　    8.系统性能
+　　    获取系统的存储器使用情况；
+　　    GetPerformanceInfo(&PerfInfo,sizeof(PERFORMACE_INFORMATION))
+　　    //获取系统性能信息；
+　　
+　　    9.进程/线程/模块信息
+　　    在此我们使用工具帮助函数(ToolHelp32)和系统
+　　    OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY │ TOKEN_ADJUST_PRIVILEGES,&hToken)；
+　　    //打开进程的令牌，提升权限；
+　　    AdjustTokenPrivileges(hToken,FALSE,&TokenPrivileges,sizeof(TOKEN_PRIVILEGES),NULL,NULL);
+　　    //将进程的权限提升到支持调试(Debug)；
+　　    CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);
+　　    //创建进程的快照；
+　　    Process32First(hProcessSnap,&ProcessEntry32)；
+　　    Process32First(hProcessSnap,&ProcessEntry32)；
+　　    //枚举所有进程；
+　　    OpenProcess(PROCESS_QUERY_INFORMATION,FALSE,ProcessEntry32.th32ProcessID);
+　　    //打开特定进程，以查询进程相关信息；
+　　    GetProcessTimes(hProcess,&CreateTime,&ExitTime,&KernelTime,&UserTime)；
+　　    //获取进程的时间信息； 
+　　    GetProcessMemoryInfo(hProcess,&PMCounter,sizeof(PMCounter))；
+　　    //获取进程的存储区信息；
+　　    GetPriorityClass(hProcess);
+　　    //获取进程的优先权；
+　　    GetProcessIoCounters(hProcess,&IoCounters)；
+　　
+　　     //获取进程的IO使用情况；
+　　    CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwProcessID);
+　　    //创建模块快照；
+　　    Module32First(hModuleSnap, &ModuleEntry32)；
+　　    Module32Next(hModuleSnap, &ModuleEntry32)；
+　　    //枚举进程模块信息；
+　　    CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+　　    //创建线程快照；
+　　    Thread32First(hThreadSnap, &ThreadEntry32)；
+　　    Thread32Next(hThreadSnap, &ThreadEntry32)；
+　　    //枚举线程信息；
+　　    OpenThread(THREAD_ALL_ACCESS,FALSE,ThreadEntry32.th32ThreadID);
+　　    //打开线程，须自己获得此函数地址；
+　　    TerminateProcess(hProcess,0)；
+　　    //终止进程；
+　　    SuspendThread(hThread);
+　　    //悬挂线程；
+　　    ResumeThread(hThread);
+　　    //激活线程；
+　　
+　　    10.关机
+　　    AdjustTokenPrivileges(hToken,FALSE,&TokenPrivileges,sizeof(TOKEN_PRIVILEGES),NULL,NULL);
+　　    //调整进程令牌，使其支持关机；
+　　    ExitWindowsEx(EWX_LOGOFF,0)；
+　　    //注销系统；
+　　    LockWorkStation()；
+　　    //锁定系统；
+　　    InitiateSystemShutdown(NULL,szMessage,dwTimeout,FALSE,bSig)；
+　　    //支持到记时和消息显示的关机/重启；
+　　    SetSystemPowerState(bSig,FALSE)；
+　　    //系统休眠/冬眠；
+　　
+　　    11.用户信息
+　　    NetUserEnum(NULL,dwLevel,FILTER_NORMAL_ACCOUNT,(LPBYTE*)&pBuf,
+　　                dwPrefMaxLen,&dwEntriesRead,&dwTotalEntries,&dwResumeHandle);
+　　    //枚举系统用户信息；
+　　    NetUserDel(NULL,lpUserNameW)； 
+　　    //删除指定用户；
+　　  
+　　    12.系统版本信息
+　　    GetVersionEx((LPOSVERSIONINFO)&osviex)；
+　　    //获取操作系统的版本信息；
+　　    我们也可以通过注册表(HKEY_LOCAL_MACHINESOFTWAREMicrosoftWindows NTCurrentVersion)获取相关信息：
+　　    GetTickCount();
+　　    //获取开机时间；
+　　    GetComputerName(szInfo,&dwInfo);
+　　    //获取计算机名称；
+　　    GetUserName(szInfo,&dwInfo);
+　　    //获取计算机用户名；
+　　    GetWindowsDirectory(szInfo,MAX_PATH+1);
+　　    //获取Windows目录；
+　　    GetSystemDirectory(szInfo,MAX_PATH+1);
+　　    //获取系统目录；
+　　
+　　
+　　 小结：
+　　    虽然我们现在已经实现了任务治理器的各项功能，甚至比Windows自带的功能还要强大，不过却没有什么兴奋的感觉。因为看看我们的代码，您就会发现那些都是直接调用的Win32API函数，但是我们清楚系统底层究竟是怎么实现的吗？不管我们是否只是为了实现一个功能，还是对操作系统感爱好，我们都应该更多的对系统底层进行研究，而不仅仅是只会使用高层函数的程序员。虽然微软为我们隐藏了很多的内部细节，但正是这种底层的秘密激发了我们对其进行深入研究的爱好和动力。
+//////////////////////////////////////////////////////////////////////////
+你好，你要用VC打开一个进程的话应该先创建后打开
+
+void CSwitchDlg::OnSTB1()
+{
+	PROCESS_INFORMATION pi;
+	if(OpenSTB(1,π)==TRUE)
+	{
+		m_List.SetItemText(0,2,_T("关机"));
+		CString pid;
+		pid.Format(_T("%d"),pi.dwProcessId);
+		m_List.SetItemText(0,1,pid.GetBuffer());
+		m_Btn1.EnableWindow(FALSE);
+		m_Pid[0]=pi.dwProcessId;
+		m_hSTB[0]=OpenProcess(PROCESS_QUERY_INFORMATION,0,m_Pid[0]);
+	}	
+	
+}
+
+BOOL CSwitchDlg::OpenSTB(int nSTB,PROCESS_INFORMATION* pi)
+{
+	if(!m_Path.GetLength())
+	{
+		AfxMessageBox(_T("机顶盒在哪里？请指明路径..."));
+		return FALSE;
+	}
+	STARTUPINFO si;
+	memset(&si,0,sizeof(si));//若不清0，那么将包含主调线程栈上的垃圾数据
+	si.cb=sizeof(si);
+	si.wShowWindow=SW_SHOW;
+	si.dwFlags=STARTF_USESHOWWINDOW;
+
+	CString cmd;
+	cmd.Format(_T("STB%d"),nSTB);
+	if(CreateProcess(m_Path, cmd.GetBuffer(),NULL,FALSE,NULL,NULL,NULL,NULL,&si,pi))
+	{
+		CloseHandle(pi->hProcess); 
+		CloseHandle(pi->hThread); //关闭到子进程的主线程内核对象的句柄
+		return TRUE;
+	}
+	else
+	{
+		MessageBox(_T("打开机顶盒失败，请选择正确的路径"));
+		return FALSE;
+	}
+}
+
+我这个代码是从一个进程中打开另一个进程。你可以模仿一下 。
+
+下面是遍历系统中正在运行的进程的 代码：
+PROCESSENTRY32 pe32;
+		pe32.dwSize = sizeof(pe32); 
+		//创建进程快照
+		HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);	
+		BOOL bMore = Process32First(hProcessSnap, &pe32);
+		//遍历系统中运行的进程
+		while(bMore)
+		{
+			//在这里做你想做的事情
+		} 

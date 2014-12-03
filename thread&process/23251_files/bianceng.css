@@ -1,0 +1,244 @@
+@import url("layout.css");
+@import url("page.css");
+*{
+	padding:0px;
+	margin:0px;
+}
+html{
+	background:#FFF;
+}
+body{
+	font:12px Verdana,Arial,Tahoma;
+}
+img{
+    border:none;
+}
+a{
+	color:#3366CC;
+	text-decoration:none;
+}
+a:hover{
+	color:#F33;
+	text-decoration:underline;
+}
+ul{
+	list-style:none;
+}
+.center{
+	margin:0px auto;
+}
+.w960{
+	width:960px;
+	position:relative;
+}
+.mt1{
+	margin-top:8px;
+}
+.mt2{
+	margin-top:16px;
+}
+.clear{
+	overflow:hidden;
+}
+.fs-12{
+	font-size:12px;
+}
+.fc-f60{
+	color:#F60;
+}
+.fc-f90{
+	color:#F90;
+}
+.header{
+    margin-left:auto;
+    margin-right:auto;
+	width:960px;
+	padding-top:5px;
+    overflow:hidden;
+}
+.header a{
+	color:#777;
+}
+.header a:hover{
+	color:#390;
+	text-decoration:none;
+}
+.header .top{
+	clear:both;
+	overflow:hidden;
+}
+.header .title{
+    width:155px;
+	height:60px;
+	float:left;
+	margin-top:1px;
+	padding-left:0px;
+}
+.header .title img{
+	width:155px;
+	height:60px;
+	display:block;
+}
+.header .banner{
+	width:468px;
+	height:60px;
+	float:left;
+	margin-left:83px;
+	overflow:hidden;
+}
+.header .banner img{
+	width:468px;
+	height:60px;
+	display:block;
+}
+.header .rlink{
+	width:172px;
+	height:60px;
+	float:right;
+	margin-left:82px;
+	margin-right:0px;
+	overflow:hidden;
+	padding-top:4px;
+}
+.header .rlink ul li{
+	width:78px;
+	height:21px;
+	background:url(../images/toprlink-bg.gif) left top no-repeat;
+	float:left;
+	margin-right:8px;
+	margin-bottom:12px;
+	overflow:hidden;
+}
+.header .rlink ul li a{
+	display:block;
+	color:#777;
+	line-height:21px;
+	text-indent:22px;
+	background-image:url(../images/toprlink-bg.gif);
+	background-repeat:no-repeat;
+}
+.header .rlink ul li a:hover{
+	color:#000;
+}
+.header .rlink ul li.r1 a{
+	background-position:0px -21px;
+}
+.header .rlink ul li.r2 a{
+	background-position:0px -42px;
+}
+.header .rlink ul li.r3 a{
+	background-position:0px -63px;
+}
+.header .rlink ul li.r4 a{
+	background-position:0px -84px;
+}
+.header .nav{
+    margin-top:2px;
+    margin-left:auto;
+    margin-right:auto;
+	width:960px;
+	height:38px;
+	background:url(../images/nav-bg.gif) repeat-x;
+	clear:both;
+    overflow:hidden;
+}
+.header .nav ul{
+	height:38px;
+	margin:0px auto;
+    overflow:hidden;
+}
+.header .nav ul li{
+	float:left;
+	line-height:38px;
+	background:url(../images/nav-bg.gif) 0px -40px no-repeat;
+	margin-left:-2px;
+}
+.header .nav ul li a{
+	height:38px;
+	padding:0px 9px 0px 12px;
+	display:block;
+	color:#FFF;
+	font-weight: bold;
+	float:left;
+}
+.header .nav ul li a:hover{
+	color:#FF3;	
+}
+.channel-nav{
+	height:31px;
+}
+.channel-nav ul{
+	height:22px;
+	padding-left:0px;
+	padding-top:3px;
+	overflow:hidden;
+	float:left;
+}
+.channel-nav ul li{
+	height:22px;
+	float:left;
+	overflow:hidden;
+	margin-right:10px;
+}
+.channel-nav ul li a{
+	height:22px;
+	display:block;
+	padding-right:10px;
+	float:left;
+	background:url(../images/channel-nav-bg.gif) right 0px no-repeat;
+	overflow:hidden;
+}
+.channel-nav ul li a span{
+	display:block;
+	float:left;
+	height:22px;
+	padding-left:6px;
+	background:url(../images/channel-nav-bg.gif) left 0px no-repeat;
+	cursor:pointer;
+	overflow:hidden;
+	line-height:23px;
+	color:#666666;
+}
+.channel-nav ul li a:hover{
+	text-decoration:none;
+	background:url(../images/channel-nav-bg.gif) right -22px no-repeat;
+}
+.channel-nav ul li a:hover span{
+	color:#78A63C;
+	text-decoration:none;
+	background:url(../images/channel-nav-bg.gif) left -22px no-repeat;
+}
+.channel-nav ul li.thisclass{
+}
+.channel-nav ul li.thisclass a,.channel-nav ul li.thisclass a:hover{
+	background:url(../images/channel-nav-bg.gif) right -44px no-repeat;
+	cursor:default;
+}
+.channel-nav ul li.thisclass a span,.channel-nav ul li.thisclass a:hover span{
+	background:url(../images/channel-nav-bg.gif) left -44px no-repeat;
+	color:#FFF;
+	cursor:default;
+}
+.footer{
+	color:#999;
+	text-align:center;
+	padding-bottom:10px;
+	border-top:1px solid #CFE3EB;
+	padding-top:10px;
+}
+.footer .link{
+	text-align:center;
+	padding:5px 0px;
+}
+.footer .link a{
+	margin:0px 5px;
+	color:#666666;
+}
+.footer .copyright{
+	color:#666666;
+	line-height:23px;
+}
+.footer .copyright a{
+	margin:0px 5px;
+	color:#666666;
+}

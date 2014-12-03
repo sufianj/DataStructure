@@ -1,0 +1,11 @@
+document.writeln("<script type=\"text/javascript\"><!--");
+document.writeln("google_ad_client = \"ca-pub-1762970342420142\";");
+document.writeln("/* 336x280 */");
+document.writeln("google_ad_slot = \"5357576166\";");
+document.writeln("google_ad_width = 336;");
+document.writeln("google_ad_height = 280;");
+document.writeln("//-->");
+document.writeln("</script>");
+document.writeln("<script type=\"text/javascript\"");
+document.writeln("src=\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">");
+document.writeln("</script>");

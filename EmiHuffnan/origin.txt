@@ -1,0 +1,32 @@
+//	cout << n << endl;
+	int pos[128];
+	input.read((char *)pos, 128 * sizeof(int));
+/*	for (i = 0; i != 128; ++i)
+		input.read((char *)&(pos[i]), sizeof(int));
+	for (i = 0; i != 128; ++i)
+		cout << i << " " << pos[i] << endl;*/
+	int m = 2 * n - 1;
+	HTree HT = new HTNode[m + 1];
+	input.read((char *)HT, 2 * n * sizeof(HTNode));
+//	for (i = 1 ; i <= m; ++i)
+//		cout << HT[i].c << " " << HT[i].weight << " "
+//			<< HT[i].parent << " " << HT[i].lchild << " " << HT[i].rchild << endl;
+	int p = m;
+	bool b;
+	input.read((char *)&b, sizeof(bool));
+	while (! input.eof())
+	{
+		//cout << b;
+		if (!HT[p].lchild)
+		{				
+			cout << HT[p].c;
+			p = m;
+		}
+		if (b)
+			p = HT[p].rchild;
+		else 
+			p = HT[p].lchild;
+		input.read((char *)&b, sizeof(bool));
+	}
+	input.close();
+}

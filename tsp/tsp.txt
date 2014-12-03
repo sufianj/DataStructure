@@ -1,0 +1,118 @@
+# #include"travelling_salesman.h"   
+# #include<iostream.h>   
+# void main()   
+# {     
+#     int cityNum,start_city;   
+#     graph min_path;   
+#     cout<<"请输入城市数目：";   
+#     cin>>cityNum;   
+#     cout<<"请输入出发的城市:";   
+#     cin>>start_city;   
+#     min_path.makeGraph(start_city-1,cityNum);   
+#     int min=min_path.shortestPath(start_city-1,cityNum-1);   
+#     min_path.pathOutput();   
+#     cout<<"最小路径值为："<<min<<endl;   
+# }  
+
+
+#include<iostream.h> 
+const int maxVerticesNum=20;//城市数最大为20 
+class graph//城市图类 
+{ 
+public: 
+     graph();//构造函数 
+	 void makeGraph(int st,int num);//初始化城市图，输入城市数，出发城市，存放权值的邻接矩阵 
+	 int shortestPath(int start,int n);//求最短路径函数 
+     void pathOutput();//输出最短路径 
+	 void copyPath(int a[],int b[]);//复制最短路径，暂存起来，求最短路径时要用到 
+private: 
+	 int verticsNum;//边数(存放城市数目) 
+	 int startCity;//出发城市 
+	 int vertics[maxVerticesNum];//该数组存放城市 
+	 int edge[maxVerticesNum][maxVerticesNum];//存放权值的邻接矩阵 
+	 int minpath[maxVerticesNum];//存放最短路径 
+	 int termpath[maxVerticesNum];//用于暂时存放最短路径 
+}; 
+graph::graph()//构造函数,初始化 
+{ 
+	for(int i=0;i<maxVerticesNum;i++) 
+	{ 
+		vertics[i]=i; 
+		minpath[i]=-1; 
+		termpath[i]=-1; 
+		for(int j=0;j<maxVerticesNum;j++) 
+			edge[i][j]=-1; 
+	} 
+	startCity=0; 
+} 
+void graph::makeGraph(int st,int num) 
+{ 
+    verticsNum=num; 
+	startCity=st; 
+	cout<<"请输入城市间权值:"<<endl; 
+		for(int i=0;i<verticsNum;i++) 
+			for(int j=0;j<verticsNum;j++) 
+			{ 
+				if(i!=j) 
+				{ 
+				cout<<"城市"<<i+1<<"-->"<<"城市"<<j+1<<':'; 
+				cin>>edge[i][j]; 
+				} 
+			} 
+} 
+int graph:: shortestPath(int start,int n)//求最短路径函数 
+{ 
+   int min=0,m=0,path=0;//min用于记录最小路径值 
+   vertics[start]=-1;//把出发城市置为-1，表示把该城市从城市集中去掉 
+   if(n==0) 
+   { 
+       vertics[start]=start; 
+	   return edge[start][startCity]; 
+   } 
+   else 
+	  { 
+		  int k=0; 
+		  while(vertics[k]==-1) k++; 
+          min=edge[start][vertics[k]]+shortestPath(k,n-1); 
+		  copyPath(minpath,termpath);//把到目前为止求得的最短路径暂存，以防在后面被覆盖 
+		  path=k; 
+		  for(k=0;k<verticsNum;k++) 
+		  {   
+			  if(vertics[k]!=-1) 
+			  { 
+				copyPath(minpath,termpath); 
+			    m=edge[start][vertics[k]]+shortestPath(k,n-1);    
+				//cout<<"n="<<n<<"  "<<m<<endl; 
+			    if(m<min)//如果m值比min还要小，则把m赋给min 
+				{ 
+					min=m; 
+					path=k; //同时纪录路径  
+				} 
+				else                           //如果m值不比min小，则把暂存的最短路径复制 
+                    copyPath(termpath,minpath);//到最短路径数组中，因为最短路径数组的内容已经被覆盖 
+ 
+			  } 
+		  } 
+         vertics[start]=start;//把出发城市从城市集中恢复，以防影响到后面的递归工作 
+         minpath[n]=path;//纪录最短路径 
+	     return min; 
+	   } 
+} 
+void graph:: pathOutput()//输出最短路径 
+{ 
+	cout<<"要求的最短路径为:"; 
+	cout<<startCity+1<<"-->"; 
+	for(int i=1;i<verticsNum;i++) 
+	{ 
+		cout<<minpath[verticsNum-i]+1<<"-->"; 
+	} 
+	cout<<startCity+1<<endl; 
+} 
+void graph::copyPath(int a[],int b[]) 
+{ 
+	for(int i=0;i<verticsNum;i++)  b[i]=a[i]; 
+}
+////////////////////////////////////////////////////////
+
+
+
